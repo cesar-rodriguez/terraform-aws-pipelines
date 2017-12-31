@@ -12,3 +12,22 @@ Triggered each time there's a zip file uploaded to S3. This function creates an 
 
 ## pipeline-delete lambda
 Triggered each time there's a zip file deleted from S3. This function deletes the pipeline for closed PRs.
+
+
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|:----:|:-----:|:-----:|
+| aws_profile | AWS credentials profile to use | string | - | yes |
+| aws_region | AWS region where resources are provisioned | string | - | yes |
+| github_api_url | API URL for GitHub | string | `https://api.github.com` | no |
+| github_repo_name | Name of the repository to track pull requests in org/repo format (e.g. cesar-rodriguez/test-repo) | string | - | yes |
+| project_name | All resources will be prepended with this name | string | - | yes |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| poller_create_lambda | ARN for poller-create lambda function |
+| s3_bucket_name | Name of the s3 bucket used for storage of PRs |
+
