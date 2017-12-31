@@ -66,7 +66,7 @@ resource "null_resource" "poller_create_dependencies" {
 resource "aws_cloudwatch_event_rule" "poller_create_schedule" {
   name                = "${var.project_name}-poller-create-schedule"
   description         = "Periodically triggers poller-create lambda"
-  schedule_expression = "rate(90 minutes)"
+  schedule_expression = "rate(${var.poller_create_rate} minutes)"
 }
 
 resource "aws_cloudwatch_event_target" "poller_create_target" {

@@ -24,3 +24,8 @@ variable "github_pac" {
 variable "github_repo_name" {
   description = "Name of the repository to track pull requests in org/repo format (e.g. cesar-rodriguez/test-repo)"
 }
+
+variable "poller_create_rate" {
+  description = "Rate in minutes for polling the GitHub repository for open pull requests"
+  default     = 5
+}
