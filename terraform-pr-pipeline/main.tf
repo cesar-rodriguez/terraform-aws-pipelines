@@ -6,7 +6,7 @@
   Funtion that is triggered by default every 5 minutes to poll the repository for open pull requets. A zip file of latest commit for each pull request is saved into an S3 bucket.
 
   ## poller-delete lambda
-  Function that is triggered by default every 60 minutes to remove zip files corresponding to closed pull requests.
+  Function that is triggered by default every 60 minutes to remove zip files from S3 corresponding to pull requests no longer open.
 
   ## pipeline-create lambda
   Triggered each time there's a zip file uploaded to S3. This function creates an AWS CodePipeline pipeline if one doesn't exists yet for that pull request.

@@ -15,3 +15,8 @@ output "s3_bucket_name" {
 output "poller_create_lambda" {
   value = "${aws_lambda_function.poller_create.arn}"
 }
+
+// ARN for poller-delete lambda function
+output "poller_delete_lambda" {
+  value = "${aws_lambda_function.poller_delete.arn}"
+}

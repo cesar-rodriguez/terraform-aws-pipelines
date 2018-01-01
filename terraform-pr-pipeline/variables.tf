@@ -29,3 +29,8 @@ variable "poller_create_rate" {
   description = "Rate in minutes for polling the GitHub repository for open pull requests"
   default     = 5
 }
+
+variable "poller_delete_rate" {
+  description = "Rate in minutes for polling the GitHub repository to check if PRs are still open"
+  default     = 60
+}
