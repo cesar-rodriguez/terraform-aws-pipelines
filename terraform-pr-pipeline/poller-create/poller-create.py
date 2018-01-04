@@ -7,7 +7,7 @@ import boto3
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 logger.handlers[0].setFormatter(logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s\n'
 ))
 logging.getLogger('boto3').setLevel(logging.ERROR)
 logging.getLogger('botocore').setLevel(logging.ERROR)
