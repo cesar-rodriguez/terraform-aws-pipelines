@@ -2,6 +2,8 @@
   # AWS terraform pull request pipeline
   Provisions CI/CD pipeline for terraform pull request reviews. A new pipeline (AWS CodePipeline) is created for each new pull request in the given GitHub repository. The solution uses AWS lambda to sync contents of PRs with S3 and to create the pipeline. CodeBuild is used to check for terraform fmt, runs terrascan for static code analysis, and comments results into the PR.
 
+  Prior to running the terraform templates for the first time. Execute setup.sh to prepopulate required zip files.
+
   ## poller-create lambda
   Funtion that is triggered by default every 5 minutes to poll the repository for open pull requets. A zip file of latest commit for each pull request is saved into an S3 bucket.
 
@@ -24,6 +26,10 @@ provider aws {
 resource "aws_s3_bucket" "bucket" {
   bucket = "${var.project_name}-terraform-pr-pipeline"
   acl    = "private"
+
+  versioning {
+    enabled = true
+  }
 
   lifecycle_rule = {
     id      = "deletein30days"
