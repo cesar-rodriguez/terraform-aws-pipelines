@@ -22,6 +22,9 @@ provider aws {
   region  = "${var.aws_region}"
 }
 
+// Used to get AWS IAM account number
+data "aws_caller_identity" "current" {}
+
 // Stores PR zip files and terraform statefiles
 resource "aws_s3_bucket" "bucket" {
   bucket = "${var.project_name}-terraform-pr-pipeline"

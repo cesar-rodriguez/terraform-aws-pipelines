@@ -1,0 +1,19 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - curl -o terraform.zip ${TERRAFORM_DOWNLOAD_URL} && unzip terraform.zip
+      - mv terraform /usr/local/bin
+      - apt-get -qq update
+      - apt-get -qq install python3 python3-pip
+      - pip3 install terrascan -q
+  build:
+    commands:
+      - repo=$( ls | grep ${REPO_NAME})
+      - terrascan -l ${repo} -t security_group 2>&1 | tee terrascan.log
+      - if [ $(cat terrascan.log | grep "FAILED" | wc -l) -gt 0 ]; then echo "terrascan test failed" && exit 1; fi
+artifacts:
+  files:
+    - terrascan.log
+  discard-paths: yes

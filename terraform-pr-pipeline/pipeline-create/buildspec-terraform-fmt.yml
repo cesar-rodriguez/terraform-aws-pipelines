@@ -1,0 +1,17 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - curl -o terraform.zip ${TERRAFORM_DOWNLOAD_URL} && unzip terraform.zip
+      - mv terraform /usr/local/bin
+  build:
+    commands:
+      - repo=$( ls | grep ${REPO_NAME})
+      - cd $repo
+      - terraform fmt | tee terraform-fmt-result.txt
+      - if [ -s terraform-fmt-result.txt ]; then echo "Unformatted templates detected" && exit 1; fi
+artifacts:
+  files:
+    - $repo/terraform-fmt-result.txt
+  discard-paths: yes

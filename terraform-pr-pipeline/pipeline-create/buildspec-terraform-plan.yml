@@ -1,0 +1,17 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - curl -o terraform.zip ${TERRAFORM_DOWNLOAD_URL} && unzip terraform.zip
+      - mv terraform /usr/local/bin
+  build:
+    commands:
+      - repo=$( ls | grep ${REPO_NAME})
+      - cd $repo/tests
+      - terraform init -input=false -no-color
+      - terraform plan -detailed-exitcode -input=false -no-color | tee plan.log
+artifacts:
+  files:
+    - $repo/tests/plan.log
+  discard-paths: yes
