@@ -61,3 +61,20 @@ data "aws_iam_policy_document" "assume_role" {
     }
   }
 }
+
+// S3 trigger event config
+resource "aws_s3_bucket_notification" "pipeline_create_delete" {
+  bucket = "${aws_s3_bucket.bucket.id}"
+
+  lambda_function {
+    lambda_function_arn = "${aws_lambda_function.pipeline_create.arn}"
+    events              = ["s3:ObjectCreated:*"]
+    filter_suffix       = "repo.zip"
+  }
+
+  lambda_function {
+    lambda_function_arn = "${aws_lambda_function.pipeline_delete.arn}"
+    events              = ["s3:ObjectRemoved:*"]
+    filter_suffix       = "repo.zip"
+  }
+}

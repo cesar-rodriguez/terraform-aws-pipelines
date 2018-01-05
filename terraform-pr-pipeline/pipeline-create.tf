@@ -40,17 +40,6 @@ resource "aws_lambda_permission" "pipeline_create" {
   source_arn    = "${aws_s3_bucket.bucket.arn}"
 }
 
-// S3 trigger event config
-resource "aws_s3_bucket_notification" "pipeline_create" {
-  bucket = "${aws_s3_bucket.bucket.id}"
-
-  lambda_function {
-    lambda_function_arn = "${aws_lambda_function.pipeline_create.arn}"
-    events              = ["s3:ObjectCreated:*"]
-    filter_suffix       = "repo.zip"
-  }
-}
-
 // Creates zip file with dependencies every time pipeline-create.py is updated
 resource "null_resource" "pipeline_create_dependencies" {
   triggers {

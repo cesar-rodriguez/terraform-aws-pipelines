@@ -46,6 +46,8 @@ def lambda_handler(event, context):
     s3_resources = s3.list_objects_v2(Bucket=bucket)['Contents']
     objects_to_delete = []
     for resource in s3_resources:
+        if 'therasec-terraform-p' in resource['Key']:
+            continue
         if not is_pr_open(resource['Key'].split('/')[0]):
             objects_to_delete.append({
                 'Key': resource['Key']
