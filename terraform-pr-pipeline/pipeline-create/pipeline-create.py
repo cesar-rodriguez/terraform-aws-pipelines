@@ -37,121 +37,134 @@ def pipeline_exists(pr_number):
     return True
 
 
+def codebuild_project_exists(pr_number, name):
+    results = codebuild.batch_get_projects(names=[
+        '{}-terraform-pr-{}-{}'.format(project_name, name, pr_number)
+    ])
+    if results['projectsNotFound'] == []:
+        return True
+    return False
+
+
 def create_pipeline(pr_number):
     """
     Creates pipeline and codebuild resources
     """
-    logger.debug('Creating terraform-fmt codebuild project')
-    with open('buildspec-terraform-fmt.yml', 'r') as buildspecfile:
-        buildspec = buildspecfile.read()
-    codebuild.create_project(
-        name='{}-terraform-pr-fmt-{}'.format(project_name, pr_number),
-        description='Checks if code is formatted',
-        source={
-            'type': 'CODEPIPELINE',
-            'buildspec': buildspec,
-        },
-        artifacts={
-            'type': 'CODEPIPELINE',
-        },
-        environment={
-            'type': 'LINUX_CONTAINER',
-            'image': code_build_image,
-            'computeType': 'BUILD_GENERAL1_SMALL',
-            'environmentVariables': [
-                {
-                    'name': 'TERRAFORM_DOWNLOAD_URL',
-                    'value': terraform_download_url,
-                    'type': 'PLAINTEXT'
-                },
-                {
-                    'name': 'TF_IN_AUTOMATION',
-                    'value': 'True',
-                    'type': 'PLAINTEXT'
-                },
-                {
-                    'name': 'REPO_NAME',
-                    'value': repo.replace('/', '-'),
-                    'type': 'PLAINTEXT'
-                }
-            ]
-        },
-        serviceRole=codebuild_service_role,
-        timeoutInMinutes=5,
-    )
+    if not codebuild_project_exists(pr_number, 'fmt'):
+        logger.debug('Creating terraform-fmt codebuild project')
+        with open('buildspec-terraform-fmt.yml', 'r') as buildspecfile:
+            buildspec = buildspecfile.read()
+        codebuild.create_project(
+            name='{}-terraform-pr-fmt-{}'.format(project_name, pr_number),
+            description='Checks if code is formatted',
+            source={
+                'type': 'CODEPIPELINE',
+                'buildspec': buildspec,
+            },
+            artifacts={
+                'type': 'CODEPIPELINE',
+            },
+            environment={
+                'type': 'LINUX_CONTAINER',
+                'image': code_build_image,
+                'computeType': 'BUILD_GENERAL1_SMALL',
+                'environmentVariables': [
+                    {
+                        'name': 'TERRAFORM_DOWNLOAD_URL',
+                        'value': terraform_download_url,
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'TF_IN_AUTOMATION',
+                        'value': 'True',
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'REPO_NAME',
+                        'value': repo.replace('/', '-'),
+                        'type': 'PLAINTEXT'
+                    }
+                ]
+            },
+            serviceRole=codebuild_service_role,
+            timeoutInMinutes=5,
+        )
 
-    logger.debug('Creating terrascan codebuild project')
-    with open('buildspec-terrascan.yml', 'r') as buildspecfile:
-        buildspec = buildspecfile.read()
-    codebuild.create_project(
-        name='{}-terraform-pr-terrascan-{}'.format(project_name, pr_number),
-        description='Runs terrascan against PR',
-        source={
-            'type': 'CODEPIPELINE',
-            'buildspec': buildspec,
-        },
-        artifacts={
-            'type': 'CODEPIPELINE',
-        },
-        environment={
-            'type': 'LINUX_CONTAINER',
-            'image': code_build_image,
-            'computeType': 'BUILD_GENERAL1_SMALL',
-            'environmentVariables': [
-                {
-                    'name': 'TERRAFORM_DOWNLOAD_URL',
-                    'value': terraform_download_url,
-                    'type': 'PLAINTEXT'
-                },
-                {
-                    'name': 'REPO_NAME',
-                    'value': repo.replace('/', '-'),
-                    'type': 'PLAINTEXT'
-                }
-            ]
-        },
-        serviceRole=codebuild_service_role,
-        timeoutInMinutes=5,
-    )
+    if not codebuild_project_exists(pr_number, 'terrascan'):
+        logger.debug('Creating terrascan codebuild project')
+        with open('buildspec-terrascan.yml', 'r') as buildspecfile:
+            buildspec = buildspecfile.read()
+        codebuild.create_project(
+            name='{}-terraform-pr-terrascan-{}'.format(
+                project_name, pr_number),
+            description='Runs terrascan against PR',
+            source={
+                'type': 'CODEPIPELINE',
+                'buildspec': buildspec,
+            },
+            artifacts={
+                'type': 'CODEPIPELINE',
+            },
+            environment={
+                'type': 'LINUX_CONTAINER',
+                'image': code_build_image,
+                'computeType': 'BUILD_GENERAL1_SMALL',
+                'environmentVariables': [
+                    {
+                        'name': 'TERRAFORM_DOWNLOAD_URL',
+                        'value': terraform_download_url,
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'REPO_NAME',
+                        'value': repo.replace('/', '-'),
+                        'type': 'PLAINTEXT'
+                    }
+                ]
+            },
+            serviceRole=codebuild_service_role,
+            timeoutInMinutes=5,
+        )
 
-    logger.debug('Creating tfplan codebuild project')
-    with open('buildspec-terraform-plan.yml', 'r') as buildspecfile:
-        buildspec = buildspecfile.read()
-    codebuild.create_project(
-        name='{}-terraform-pr-plan-{}'.format(project_name, pr_number),
-        description='Runs terraform plan against PR',
-        source={
-            'type': 'CODEPIPELINE',
-            'buildspec': buildspec,
-        },
-        artifacts={
-            'type': 'CODEPIPELINE',
-        },
-        environment={
-            'type': 'LINUX_CONTAINER',
-            'image': code_build_image,
-            'computeType': 'BUILD_GENERAL1_SMALL',
-            'environmentVariables': [
-                {
-                    'name': 'TERRAFORM_DOWNLOAD_URL',
-                    'value': terraform_download_url,
-                    'type': 'PLAINTEXT'
-                },
-                {
-                    'name': 'TF_IN_AUTOMATION',
-                    'value': 'True',
-                    'type': 'PLAINTEXT'
-                },
-                {
-                    'name': 'REPO_NAME',
-                    'value': repo.replace('/', '-'),
-                    'type': 'PLAINTEXT'
-                }
-            ]
-        },
-        serviceRole=codebuild_service_role,
-        timeoutInMinutes=10,
-    )
+    if not codebuild_project_exists(pr_number, 'plan'):
+        logger.debug('Creating tfplan codebuild project')
+        with open('buildspec-terraform-plan.yml', 'r') as buildspecfile:
+            buildspec = buildspecfile.read()
+        codebuild.create_project(
+            name='{}-terraform-pr-plan-{}'.format(project_name, pr_number),
+            description='Runs terraform plan against PR',
+            source={
+                'type': 'CODEPIPELINE',
+                'buildspec': buildspec,
+            },
+            artifacts={
+                'type': 'CODEPIPELINE',
+            },
+            environment={
+                'type': 'LINUX_CONTAINER',
+                'image': code_build_image,
+                'computeType': 'BUILD_GENERAL1_SMALL',
+                'environmentVariables': [
+                    {
+                        'name': 'TERRAFORM_DOWNLOAD_URL',
+                        'value': terraform_download_url,
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'TF_IN_AUTOMATION',
+                        'value': 'True',
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'REPO_NAME',
+                        'value': repo.replace('/', '-'),
+                        'type': 'PLAINTEXT'
+                    }
+                ]
+            },
+            serviceRole=codebuild_service_role,
+            timeoutInMinutes=10,
+        )
 
     logger.debug('Creating pipeline')
     codepipeline.create_pipeline(

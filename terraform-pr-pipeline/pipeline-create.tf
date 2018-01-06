@@ -97,6 +97,7 @@ data "aws_iam_policy_document" "pipeline_create" {
 
     actions = [
       "codebuild:CreateProject",
+      "codebuild:BatchGetProjects",
     ]
 
     resources = [
