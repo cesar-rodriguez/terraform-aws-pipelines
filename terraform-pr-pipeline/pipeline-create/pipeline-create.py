@@ -214,6 +214,7 @@ def create_pipeline(pr_number):
                                 'provider': 'CodeBuild',
                                 'version': '1'
                             },
+                            'runOrder': 1,
                             'configuration': {
                                 'ProjectName': '{}-terraform-pr-fmt-{}'.format(
                                     project_name, pr_number)
@@ -237,6 +238,7 @@ def create_pipeline(pr_number):
                                 'provider': 'CodeBuild',
                                 'version': '1'
                             },
+                            'runOrder': 1,
                             'configuration': {
                                 'ProjectName':
                                     '{}-terraform-pr-terrascan-{}'.format(
@@ -251,6 +253,29 @@ def create_pipeline(pr_number):
                                 {
                                     'name': 'source_zip'
                                 },
+                            ]
+                        },
+                        {
+                            'name': 'post-comment',
+                            'actionTypeId': {
+                                'category': 'Invoke',
+                                'owner': 'AWS',
+                                'provider': 'Lambda',
+                                'version': '1'
+                            },
+                            'runOrder': 2,
+                            'configuration': {
+                                'FunctionName':
+                                    '{}-post-comment'.format(
+                                        project_name)
+                            },
+                            'inputArtifacts': [
+                                {
+                                    'name': 'terraform_fmt',
+                                },
+                                {
+                                    'name': 'terrascan'
+                                }
                             ]
                         }
                     ]
@@ -280,6 +305,26 @@ def create_pipeline(pr_number):
                                 {
                                     'name': 'source_zip'
                                 },
+                            ]
+                        },
+                        {
+                            'name': 'post-comment',
+                            'actionTypeId': {
+                                'category': 'Invoke',
+                                'owner': 'AWS',
+                                'provider': 'Lambda',
+                                'version': '1'
+                            },
+                            'runOrder': 2,
+                            'configuration': {
+                                'FunctionName':
+                                    '{}-post-comment'.format(
+                                        project_name)
+                            },
+                            'inputArtifacts': [
+                                {
+                                    'name': 'terraform_plan',
+                                }
                             ]
                         }
                     ]
