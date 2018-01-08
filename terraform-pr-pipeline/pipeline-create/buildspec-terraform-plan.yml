@@ -10,8 +10,13 @@ phases:
       - repo=$( ls | grep ${REPO_NAME})
       - cd $repo/tests
       - terraform init -input=false -no-color
-      - terraform plan -detailed-exitcode -input=false -no-color | tee plan.log
+      - terraform plan -detailed-exitcode -input=false -no-color | tee results.log
+  post_build:
+    commands:
+      - cd
+      - echo -e "{\"test\":\"terraform-plan\", \"build\":\""$CODEBUILD_BUILD_ID"\", \"status\":\""$CODEBUILD_BUILD_SUCCEEDING"\"}" > metadata.log
 artifacts:
   files:
-    - $repo/tests/plan.log
+    - $repo/tests/results.log
+    - metadata.log
   discard-paths: yes

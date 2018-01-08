@@ -28,6 +28,7 @@ codepipeline_service_role = os.environ['CODEPIPELINE_SERVICE_ROLE']
 
 
 def pipeline_exists(pr_number):
+    """Returns True if AWS CodePipeline pipeline exists"""
     try:
         codepipeline.get_pipeline(name='{}-terraform-pr-{}'.format(
             project_name,
@@ -38,6 +39,7 @@ def pipeline_exists(pr_number):
 
 
 def codebuild_project_exists(pr_number, name):
+    """Returns True if AWS CodeBuild project exists"""
     results = codebuild.batch_get_projects(names=[
         '{}-terraform-pr-{}-{}'.format(project_name, name, pr_number)
     ])
@@ -256,7 +258,7 @@ def create_pipeline(pr_number):
                             ]
                         },
                         {
-                            'name': 'post-comment',
+                            'name': 'post-results',
                             'actionTypeId': {
                                 'category': 'Invoke',
                                 'owner': 'AWS',
@@ -267,7 +269,8 @@ def create_pipeline(pr_number):
                             'configuration': {
                                 'FunctionName':
                                     '{}-post-comment'.format(
-                                        project_name)
+                                        project_name),
+                                'UserParameters': pr_number
                             },
                             'inputArtifacts': [
                                 {
@@ -308,7 +311,7 @@ def create_pipeline(pr_number):
                             ]
                         },
                         {
-                            'name': 'post-comment',
+                            'name': 'post-results',
                             'actionTypeId': {
                                 'category': 'Invoke',
                                 'owner': 'AWS',
@@ -319,7 +322,8 @@ def create_pipeline(pr_number):
                             'configuration': {
                                 'FunctionName':
                                     '{}-post-comment'.format(
-                                        project_name)
+                                        project_name),
+                                'UserParameters': pr_number
                             },
                             'inputArtifacts': [
                                 {

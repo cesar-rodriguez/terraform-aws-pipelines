@@ -9,9 +9,14 @@ phases:
     commands:
       - repo=$( ls | grep ${REPO_NAME})
       - cd $repo
-      - terraform fmt | tee terraform-fmt-result.txt
+      - terraform fmt | tee results.log
       - if [ -s terraform-fmt-result.txt ]; then echo "Unformatted templates detected" && exit 1; fi
+  post_build:
+    commands:
+      - touch metadata.log
+      - echo -e "{\"test\":\"terraform-fmt\", \"build\":\""$CODEBUILD_BUILD_ID"\", \"status\":\""$CODEBUILD_BUILD_SUCCEEDING"\"}" > metadata.log
 artifacts:
   files:
-    - $repo/terraform-fmt-result.txt
+    - $repo/results.log
+    - $repo/metadata.log
   discard-paths: yes

@@ -11,9 +11,14 @@ phases:
   build:
     commands:
       - repo=$( ls | grep ${REPO_NAME})
-      - terrascan -l ${repo} -t security_group 2>&1 | tee terrascan.log
+      - terrascan -l ${repo} -t security_group 2>&1 | tee results.log
       - if [ $(cat terrascan.log | grep "FAILED" | wc -l) -gt 0 ]; then echo "terrascan test failed" && exit 1; fi
+  post_build:
+    commands:
+      - touch metadata.log
+      - echo -e "{\"test\":\"terrascan\", \"build\":\""$CODEBUILD_BUILD_ID"\", \"status\":\""$CODEBUILD_BUILD_SUCCEEDING"\"}" > metadata.log
 artifacts:
   files:
-    - terrascan.log
+    - results.log
+    - metadata.log
   discard-paths: yes
