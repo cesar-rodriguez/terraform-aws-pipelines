@@ -13,10 +13,10 @@ phases:
       - terraform plan -detailed-exitcode -input=false -no-color | tee results.log
   post_build:
     commands:
-      - cd
+      - touch metadata.log
       - echo -e "{\"test\":\"terraform-plan\", \"build\":\""$CODEBUILD_BUILD_ID"\", \"status\":\""$CODEBUILD_BUILD_SUCCEEDING"\"}" > metadata.log
 artifacts:
   files:
     - $repo/tests/results.log
-    - metadata.log
+    - $repo/tests/metadata.log
   discard-paths: yes

@@ -39,7 +39,9 @@ def pipeline_exists(pr_number):
 
 
 def codebuild_project_exists(pr_number, name):
-    """Returns True if AWS CodeBuild project exists"""
+    """
+    Returns True if AWS CodeBuild project exists
+    """
     results = codebuild.batch_get_projects(names=[
         '{}-terraform-pr-{}-{}'.format(project_name, name, pr_number)
     ])
