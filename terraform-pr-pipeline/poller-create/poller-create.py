@@ -22,6 +22,35 @@ repo = os.environ['GITHUB_REPO_NAME']
 bucket = os.environ['BUCKET_NAME']
 
 
+def get_open_pull_requests():
+    """
+    Returns JSON of open PRs on given repo
+    """
+    pulls_url = '{}/repos/{}/pulls'.format(
+        github_api_url,
+        repo)
+    logger.info('Loading open pull requests from: {}'.format(pulls_url))
+    r = requests.get(pulls_url)
+
+    if r.status_code != 200:
+        logger.error('GH pull URL status code error: {}'.format(
+            r.status_code))
+        raise Exception('GH pull URL status code != 200')
+
+    return r.json()
+
+
+def object_exists(key):
+    """
+    Determines if objet exists in S3 bucket
+    """
+    try:
+        s3.get_object(Bucket=bucket, Key=key)
+    except s3.exceptions.NoSuchKey:
+        return False
+    return True
+
+
 def is_pr_synced(pr_number, sha):
     """
     Checks if there's a corresponding S3 object for the given pr_number and sha
@@ -63,19 +92,10 @@ def lambda_handler(event, context):
     """
     Checks if repo for PRs and syncs open PRs (and commits) into an S3 bucket
     """
-    logger.debug('Loading open PRs for {}'.format(repo))
-    pulls_url = '{}/repos/{}/pulls'.format(
-        github_api_url,
-        repo)
-    r = requests.get(pulls_url)
-
-    if r.status_code != 200:
-        logger.error('GH pull URL status code error: {}'.format(
-            r.status_code))
-        raise Exception('GH pull URL status code != 200')
+    open_pr_json = get_open_pull_requests()
 
     synced_prs = []
-    for pr in r.json():
+    for pr in open_pr_json:
         """
         Check if in S3
         If not in s3 get zip and place it there
