@@ -103,6 +103,18 @@ data "aws_iam_policy_document" "pipeline_delete" {
       "arn:aws:codepipeline:${var.aws_region}:${data.aws_caller_identity.current.account_id}:${var.project_name}*",
     ]
   }
+
+  statement {
+    sid = "s3"
+
+    actions = [
+      "s3:GetObject*",
+    ]
+
+    resources = [
+      "${aws_s3_bucket.bucket.arn}*",
+    ]
+  }
 }
 
 resource "aws_iam_policy" "pipeline_delete" {

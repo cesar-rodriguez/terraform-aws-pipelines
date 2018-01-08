@@ -101,6 +101,7 @@ data "aws_iam_policy_document" "poller_delete" {
     actions = [
       "s3:List*",
       "s3:DeleteObject",
+      "s3:GetObject*",
     ]
 
     resources = [
