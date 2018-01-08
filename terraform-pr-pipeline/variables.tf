@@ -15,11 +15,9 @@ variable "github_api_url" {
   default     = "https://api.github.com"
 }
 
-/*
 variable "github_pac" {
   description = "GitHub Personal Access Token"
 }
-*/
 
 variable "github_repo_name" {
   description = "Name of the repository to track pull requests in org/repo format (e.g. cesar-rodriguez/test-repo)"
