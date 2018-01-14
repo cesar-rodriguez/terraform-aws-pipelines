@@ -5,6 +5,14 @@ phases:
     commands:
       - curl -o terraform.zip ${TERRAFORM_DOWNLOAD_URL} && unzip terraform.zip
       - mv terraform /usr/local/bin
+      - apt-get -qq update
+      - apt-get -qq install jq
+  pre_build:
+    commands:
+      - export BUILD_URL="https://console.aws.amazon.com/codebuild/home?region=${AWS_REGION}#/builds/${CODEBUILD_BUILD_ID}/view/new"
+      - export SHA=$( aws s3api get-object-tagging --bucket $S3_BUCKET --key $PR_NUMBER/repo.zip | jq '.TagSet[] | select(.Key=="latest_commit")' | jq -r '.Value' )
+      - "jq -n -r --arg url \"$BUILD_URL\" '{ state: \"pending\", target_url: $url, description: \"Checks that terraform plan executes without errors\", context: \"terraform-plan\"}' > data.json"
+      - "curl -d \"@data.json\" -H \"Content-Type: application/json\" -H \"Authorization: token ${GITHUB_PAC}\" -X POST \"${GITHUB_API_URL}/repos/${REPO_OWNER}/${REPO}/statuses/${SHA}\""
   build:
     commands:
       - repo=$( ls | grep ${REPO_NAME})
@@ -13,10 +21,9 @@ phases:
       - terraform plan -detailed-exitcode -input=false -no-color | tee results.log
   post_build:
     commands:
-      - touch metadata.log
-      - echo -e "{\"test\":\"terraform-plan\", \"build\":\""$CODEBUILD_BUILD_ID"\", \"status\":\""$CODEBUILD_BUILD_SUCCEEDING"\"}" > metadata.log
-artifacts:
-  files:
-    - $repo/tests/results.log
-    - $repo/tests/metadata.log
-  discard-paths: yes
+      - if [ $CODEBUILD_BUILD_SUCCEEDING -eq 1 ]; then export STATE="success"; else export STATE="failure"; fi
+      - "jq -n -r --arg state \"${STATE}\" --arg url \"$BUILD_URL\" '{ state: $state, target_url: $url, description: \"Checks that terraform plan executes without errors\", context: \"terraform-plan\"}' > data.json"
+      - "curl -d \"@data.json\" -H \"Content-Type: application/json\" -H \"Authorization: token ${GITHUB_PAC}\" -X POST $GITHUB_API_URL/repos/$REPO_OWNER/$REPO/statuses/$SHA"
+      - echo "# terraform-plan results results for $SHA\n" > results.txt && cat results.log >> results.txt
+      - "jq -n -r --arg body \"$(cat results.txt)\" '{ body: $body }' > data.json"
+      - "curl -d \"@data.json\" -H \"Content-Type: application/json\" -H \"Authorization: token ${GITHUB_PAC}\" -X POST $GITHUB_API_URL/repos/$REPO_OWNER/$REPO/issues/$PR_NUMBER/comments"

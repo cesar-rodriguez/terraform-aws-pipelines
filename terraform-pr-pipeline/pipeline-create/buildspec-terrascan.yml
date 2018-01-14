@@ -6,19 +6,24 @@ phases:
       - curl -o terraform.zip ${TERRAFORM_DOWNLOAD_URL} && unzip terraform.zip
       - mv terraform /usr/local/bin
       - apt-get -qq update
-      - apt-get -qq install python3 python3-pip
+      - apt-get -qq install python3 python3-pip jq
       - pip3 install terrascan -q
+  pre_build:
+    commands:
+      - export BUILD_URL="https://console.aws.amazon.com/codebuild/home?region=${AWS_REGION}#/builds/${CODEBUILD_BUILD_ID}/view/new"
+      - export SHA=$( aws s3api get-object-tagging --bucket $S3_BUCKET --key $PR_NUMBER/repo.zip | jq '.TagSet[] | select(.Key=="latest_commit")' | jq -r '.Value' )
+      - "jq -n -r --arg url \"$BUILD_URL\" '{ state: \"pending\", target_url: $url, description: \"Checks that terrascan runs without errors\", context: \"terrascan\"}' > data.json"
+      - "curl -d \"@data.json\" -H \"Content-Type: application/json\" -H \"Authorization: token ${GITHUB_PAC}\" -X POST \"${GITHUB_API_URL}/repos/${REPO_OWNER}/${REPO}/statuses/${SHA}\""
   build:
     commands:
       - repo=$( ls | grep ${REPO_NAME})
       - terrascan -l ${repo} -t security_group 2>&1 | tee results.log
-      - if [ $(cat terrascan.log | grep "FAILED" | wc -l) -gt 0 ]; then echo "terrascan test failed" && exit 1; fi
+      - if [ $(cat results.log | grep "FAILED" | wc -l) -gt 0 ]; then echo "terrascan test failed" && exit 1; fi
   post_build:
     commands:
-      - touch metadata.log
-      - echo -e "{\"test\":\"terrascan\", \"build\":\""$CODEBUILD_BUILD_ID"\", \"status\":\""$CODEBUILD_BUILD_SUCCEEDING"\"}" > metadata.log
-artifacts:
-  files:
-    - results.log
-    - metadata.log
-  discard-paths: yes
+      - if [ $CODEBUILD_BUILD_SUCCEEDING -eq 1 ]; then export STATE="success"; else export STATE="failure"; fi
+      - "jq -n -r --arg state \"${STATE}\" --arg url \"$BUILD_URL\" '{ state: $state, target_url: $url, description: \"Checks that terrascan runs without errors\", context: \"terrascan\"}' > data.json"
+      - "curl -d \"@data.json\" -H \"Content-Type: application/json\" -H \"Authorization: token ${GITHUB_PAC}\" -X POST $GITHUB_API_URL/repos/$REPO_OWNER/$REPO/statuses/$SHA"
+      - echo "# terrascan results for $SHA\n" > results.txt && cat results.log >> results.txt
+      - "jq -n -r --arg body \"$(cat results.txt)\" '{ body: $body }' > data.json"
+      - "curl -d \"@data.json\" -H \"Content-Type: application/json\" -H \"Authorization: token ${GITHUB_PAC}\" -X POST $GITHUB_API_URL/repos/$REPO_OWNER/$REPO/issues/$PR_NUMBER/comments"

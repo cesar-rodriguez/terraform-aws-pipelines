@@ -17,7 +17,7 @@ resource "aws_lambda_function" "pipeline_create" {
 
   environment {
     variables = {
-      # GITHUB_PAC           = "${var.github_pac}"
+      GITHUB_PAC             = "${var.github_pac}"
       GITHUB_API_URL         = "${var.github_api_url}"
       GITHUB_REPO_NAME       = "${var.github_repo_name}"
       BUCKET_NAME            = "${aws_s3_bucket.bucket.id}"

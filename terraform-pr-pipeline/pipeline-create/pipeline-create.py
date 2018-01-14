@@ -16,7 +16,7 @@ codepipeline = boto3.client('codepipeline')
 codebuild = boto3.client('codebuild')
 
 # Global vars
-# pac = os.environ['GITHUB_PAC']
+pac = os.environ['GITHUB_PAC']
 github_api_url = os.environ['GITHUB_API_URL']
 repo = os.environ['GITHUB_REPO_NAME']
 bucket = os.environ['BUCKET_NAME']
@@ -87,7 +87,37 @@ def create_pipeline(pr_number):
                         'name': 'REPO_NAME',
                         'value': repo.replace('/', '-'),
                         'type': 'PLAINTEXT'
-                    }
+                    },
+                    {
+                        'name': 'S3_BUCKET',
+                        'value': bucket,
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'PR_NUMBER',
+                        'value': pr_number,
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'GITHUB_API_URL',
+                        'value': github_api_url,
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'REPO_OWNER',
+                        'value': repo.split('/')[0],
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'REPO',
+                        'value': repo.split('/')[1],
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'GITHUB_PAC',
+                        'value': pac,
+                        'type': 'PLAINTEXT'
+                    },
                 ]
             },
             serviceRole=codebuild_service_role,
@@ -120,10 +150,45 @@ def create_pipeline(pr_number):
                         'type': 'PLAINTEXT'
                     },
                     {
+                        'name': 'TF_IN_AUTOMATION',
+                        'value': 'True',
+                        'type': 'PLAINTEXT'
+                    },
+                    {
                         'name': 'REPO_NAME',
                         'value': repo.replace('/', '-'),
                         'type': 'PLAINTEXT'
-                    }
+                    },
+                    {
+                        'name': 'S3_BUCKET',
+                        'value': bucket,
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'PR_NUMBER',
+                        'value': pr_number,
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'GITHUB_API_URL',
+                        'value': github_api_url,
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'REPO_OWNER',
+                        'value': repo.split('/')[0],
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'REPO',
+                        'value': repo.split('/')[1],
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'GITHUB_PAC',
+                        'value': pac,
+                        'type': 'PLAINTEXT'
+                    },
                 ]
             },
             serviceRole=codebuild_service_role,
@@ -163,7 +228,37 @@ def create_pipeline(pr_number):
                         'name': 'REPO_NAME',
                         'value': repo.replace('/', '-'),
                         'type': 'PLAINTEXT'
-                    }
+                    },
+                    {
+                        'name': 'S3_BUCKET',
+                        'value': bucket,
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'PR_NUMBER',
+                        'value': pr_number,
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'GITHUB_API_URL',
+                        'value': github_api_url,
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'REPO_OWNER',
+                        'value': repo.split('/')[0],
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'REPO',
+                        'value': repo.split('/')[1],
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'GITHUB_PAC',
+                        'value': pac,
+                        'type': 'PLAINTEXT'
+                    },
                 ]
             },
             serviceRole=codebuild_service_role,
@@ -208,7 +303,7 @@ def create_pipeline(pr_number):
                     ]
                 },
                 {
-                    'name': 'static-code-analysis',
+                    'name': 'pull-request-tests',
                     'actions': [
                         {
                             'name': 'terraform-fmt',
@@ -218,16 +313,10 @@ def create_pipeline(pr_number):
                                 'provider': 'CodeBuild',
                                 'version': '1'
                             },
-                            'runOrder': 1,
                             'configuration': {
                                 'ProjectName': '{}-terraform-pr-fmt-{}'.format(
                                     project_name, pr_number)
                             },
-                            'outputArtifacts': [
-                                {
-                                    'name': 'terraform_fmt'
-                                },
-                            ],
                             'inputArtifacts': [
                                 {
                                     'name': 'source_zip'
@@ -242,52 +331,17 @@ def create_pipeline(pr_number):
                                 'provider': 'CodeBuild',
                                 'version': '1'
                             },
-                            'runOrder': 1,
                             'configuration': {
                                 'ProjectName':
                                     '{}-terraform-pr-terrascan-{}'.format(
                                         project_name, pr_number)
                             },
-                            'outputArtifacts': [
-                                {
-                                    'name': 'terrascan'
-                                },
-                            ],
                             'inputArtifacts': [
                                 {
                                     'name': 'source_zip'
                                 },
                             ]
                         },
-                        {
-                            'name': 'post-results',
-                            'actionTypeId': {
-                                'category': 'Invoke',
-                                'owner': 'AWS',
-                                'provider': 'Lambda',
-                                'version': '1'
-                            },
-                            'runOrder': 2,
-                            'configuration': {
-                                'FunctionName':
-                                    '{}-post-comment'.format(
-                                        project_name),
-                                'UserParameters': pr_number
-                            },
-                            'inputArtifacts': [
-                                {
-                                    'name': 'terraform_fmt',
-                                },
-                                {
-                                    'name': 'terrascan'
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    'name': 'terraform-plan',
-                    'actions': [
                         {
                             'name': 'terraform-plan',
                             'actionTypeId': {
@@ -301,36 +355,10 @@ def create_pipeline(pr_number):
                                     '{}-terraform-pr-plan-{}'.format(
                                         project_name, pr_number)
                             },
-                            'outputArtifacts': [
-                                {
-                                    'name': 'terraform_plan'
-                                },
-                            ],
                             'inputArtifacts': [
                                 {
                                     'name': 'source_zip'
                                 },
-                            ]
-                        },
-                        {
-                            'name': 'post-results',
-                            'actionTypeId': {
-                                'category': 'Invoke',
-                                'owner': 'AWS',
-                                'provider': 'Lambda',
-                                'version': '1'
-                            },
-                            'runOrder': 2,
-                            'configuration': {
-                                'FunctionName':
-                                    '{}-post-comment'.format(
-                                        project_name),
-                                'UserParameters': pr_number
-                            },
-                            'inputArtifacts': [
-                                {
-                                    'name': 'terraform_plan',
-                                }
                             ]
                         }
                     ]
