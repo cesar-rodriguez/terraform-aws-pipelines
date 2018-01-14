@@ -18,7 +18,8 @@ phases:
       - repo=$( ls | grep ${REPO_NAME})
       - cd $repo/tests
       - terraform init -input=false -no-color
-      - terraform plan -detailed-exitcode -input=false -no-color | tee results.log
+      - terraform plan -input=false -no-color 2>&1 | tee results.log
+      - if [ $(cat results.log | grep "Error" | wc -l) -gt 0 ]; then echo "Error in terraform plan" && exit 1; fi
   post_build:
     commands:
       - if [ $CODEBUILD_BUILD_SUCCEEDING -eq 1 ]; then export STATE="success"; else export STATE="failure"; fi
