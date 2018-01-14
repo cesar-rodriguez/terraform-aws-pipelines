@@ -27,7 +27,7 @@ def object_exists(key):
     """
     try:
         s3.get_object(Bucket=bucket, Key=key)
-    except s3.exceptions.NoSuchKey:
+    except (s3.exceptions.NoSuchKey, s3.exceptions.ClientError):
         return False
     return True
 
