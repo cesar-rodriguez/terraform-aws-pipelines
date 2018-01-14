@@ -108,7 +108,7 @@ data "aws_iam_policy_document" "pipeline_delete" {
     sid = "s3"
 
     actions = [
-      "s3:GetObject*",
+      "s3:GetObject",
     ]
 
     resources = [
