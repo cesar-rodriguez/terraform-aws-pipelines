@@ -17,17 +17,18 @@ resource "aws_lambda_function" "pipeline_create" {
 
   environment {
     variables = {
-      GITHUB_PAC             = "${var.github_pac}"
-      GITHUB_API_URL         = "${var.github_api_url}"
-      GITHUB_REPO_NAME       = "${var.github_repo_name}"
-      BUCKET_NAME            = "${aws_s3_bucket.bucket.id}"
-      PROJECT_NAME           = "${var.project_name}"
-      CODE_BUILD_IMAGE       = "${var.code_build_image}"
-      TERRAFORM_DOWNLOAD_URL = "${var.terraform_download_url}"
+      GITHUB_PAC                = "${var.github_pac}"
+      GITHUB_API_URL            = "${var.github_api_url}"
+      GITHUB_REPO_NAME          = "${var.github_repo_name}"
+      BUCKET_NAME               = "${aws_s3_bucket.bucket.id}"
+      PROJECT_NAME              = "${var.project_name}"
+      CODE_BUILD_IMAGE          = "${var.code_build_image}"
+      TERRAFORM_DOWNLOAD_URL    = "${var.terraform_download_url}"
+      CODEBUILD_SERVICE_ROLE    = "${aws_iam_role.codebuild.arn}"
+      CODEPIPELINE_SERVICE_ROLE = "${aws_iam_role.codepipeline.arn}"
 
       #CODEBUILD_SERVICE_ROLE    = "${var.codebuild_iam_service_role_arn}"
-      CODEBUILD_SERVICE_ROLE    = "${aws_iam_role.codebuild.arn}"
-      CODEPIPELINE_SERVICE_ROLE = "${var.codepipeline_iam_service_role_arn}"
+      #CODEPIPELINE_SERVICE_ROLE = "${var.codepipeline_iam_service_role_arn}"
     }
   }
 }
@@ -127,11 +128,12 @@ data "aws_iam_policy_document" "pipeline_create" {
     ]
 
     resources = [
-      #"${var.codebuild_iam_service_role_arn",
       "${aws_iam_role.codebuild.arn}",
-
-      "${var.codepipeline_iam_service_role_arn}",
+      "${aws_iam_role.codepipeline.arn}",
     ]
+
+    #"${var.codebuild_iam_service_role_arn",
+    #"${var.codepipeline_iam_service_role_arn}",
   }
 }
 

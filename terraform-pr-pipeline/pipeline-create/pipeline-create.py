@@ -6,7 +6,7 @@ import requests
 
 # Configuring logger
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 logger.handlers[0].setFormatter(logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s - %(message)s\n'
 ))

@@ -33,16 +33,6 @@ variable "poller_delete_rate" {
   default     = 60
 }
 
-/*
-variable "codebuild_iam_service_role_arn" {
-  description = "IAM role to used by AWS CodeBuild projects"
-  default     = ""
-}
-*/
-variable "codepipeline_iam_service_role_arn" {
-  description = "IAM role to be used by AWS CodePipeline pipeline"
-}
-
 variable "code_build_image" {
   description = "Docker image to use for CodeBuild container - Use http://amzn.to/2mjCI91 for reference"
   default     = "aws/codebuild/ubuntu-base:14.04"
@@ -52,3 +42,18 @@ variable "terraform_download_url" {
   description = "URL for terraform version to be used for builds"
   default     = "https://releases.hashicorp.com/terraform/0.11.1/terraform_0.11.1_linux_amd64.zip"
 }
+
+/*
+variable "codebuild_iam_service_role_arn" {
+  description = "IAM role to used by AWS CodeBuild projects"
+  default     = ""
+}
+*/
+
+
+/*
+variable "codepipeline_iam_service_role_arn" {
+  description = "IAM role to be used by AWS CodePipeline pipeline"
+}
+*/
+
