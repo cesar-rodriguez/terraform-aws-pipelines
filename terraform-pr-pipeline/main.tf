@@ -2,6 +2,26 @@
   # AWS terraform pull request pipeline
   Provisions CI/CD pipeline for terraform pull request reviews. A new pipeline (AWS CodePipeline) is created for each new pull request in the given GitHub repository. The solution uses AWS lambda to sync contents of PRs with S3 and to create the pipeline. CodeBuild is used to check for terraform fmt, runs terrascan for static code analysis, and comments results into the PR.
 
+  The pipeline will only perform tests on directories that contain modified files only. Testing that terraform plan/apply exesutes without errors will be done on /tests directories assuming that such directory exists on each template directory. Here's an example directory tree:
+```
+  .
+|-- main.tf
+|-- tests
+|   `-- main.tf
+|-- tf_templates
+|   |-- main.tf
+|   `-- tests
+|       `-- main.tf
+|-- tf_another_dir
+|   |-- main.tf
+|   `-- tests
+|       `-- main.tf
+`-- tf_yet_another_dir
+    |-- main.tf
+    `-- tests
+        `-- main.tf
+```
+
   Prior to running the terraform templates for the first time. Execute setup.sh to prepopulate required zip files.
 
   ## poller-create lambda
