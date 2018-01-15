@@ -17,7 +17,9 @@ phases:
   build:
     commands:
       - repo=$( ls | grep ${REPO_NAME})
-      - terrascan -l ${repo} 2>&1 | tee results.log
+      - cd $repo
+      - echo $MODIFIED_DIRS
+      - for dir in $MODIFIED_DIRS; do echo "## Scanning $dir\n" >> results.log && terrascan -l $dir 2>&1 | tee -a results.log; done
       - if [ $(cat results.log | grep "FAILED" | wc -l) -gt 0 ]; then echo "terrascan test failed" && exit 1; fi
   post_build:
     commands:

@@ -17,7 +17,8 @@ phases:
     commands:
       - repo=$( ls | grep ${REPO_NAME})
       - cd $repo
-      - terraform fmt | tee results.log
+      - echo $MODIFIED_DIRS
+      - for dir in $MODIFIED_DIRS; do terraform fmt $dir | tee -a results.log; done
       - if [ -s results.log ]; then echo "Unformatted templates detected" && exit 1; fi
   post_build:
     commands:

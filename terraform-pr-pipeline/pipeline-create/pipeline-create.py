@@ -1,6 +1,8 @@
 import os
 import logging
+import re
 import boto3
+import requests
 
 # Configuring logger
 logger = logging.getLogger()
@@ -50,12 +52,67 @@ def codebuild_project_exists(pr_number, name):
     return False
 
 
+def remove_list_duplicates(input_list):
+    """Removes duplicates entries from list"""
+    return list(dict.fromkeys(input_list))
+
+
+def get_modified_directories(pr_number):
+    """
+    Returns a dict containing paths to the modified directories from the PR
+    """
+    # Get pull request info
+    response = requests.get('https://api.github.com/repos/{}/pulls/{}'.format(
+        repo,
+        pr_number
+    ))
+    # Get Diffs
+    diff_url = response.json()['diff_url']
+    response = requests.get(diff_url)
+
+    # Determine all counts of files modified
+    expression = r'( b\/[^\s][^\\]*)+'
+    files_modified = []
+    for obj in re.finditer(expression, '{}'.format(response.content)):
+        if '.tf' in obj.group(1):
+            files_modified.append(obj.group(1)[3:])
+    files_modified = remove_list_duplicates(files_modified)
+
+    # Get DIRs (for terraform fmt)
+    dirs = []
+    test_dirs = []
+    for file in files_modified:
+        dir_only = file.split('/')[:-1]
+        if dir_only == []:
+            dirs.append('.')
+            test_dirs.append('tests')
+            continue
+        dirs.append('/'.join(dir_only))
+        if 'tests' in file:
+            test_dirs.append('/'.join(dir_only))
+        else:
+            test_dirs.append(
+                '{}/tests'.format(
+                    '/'.join(dir_only)
+                ))
+    dirs = remove_list_duplicates(dirs)
+    test_dirs = remove_list_duplicates(test_dirs)
+
+    return {
+        'dirs': dirs,
+        'test_dirs': test_dirs
+    }
+
+
 def create_pipeline(pr_number):
     """
     Creates pipeline and codebuild resources
     """
+    modified_dirs = get_modified_directories(pr_number)
+    dirs = modified_dirs['dirs']
+    test_dirs = modified_dirs['test_dirs']
     if not codebuild_project_exists(pr_number, 'fmt'):
-        logger.debug('Creating terraform-fmt codebuild project')
+        logger.info('Creating terraform-fmt codebuild project')
         with open('buildspec-terraform-fmt.yml', 'r') as buildspecfile:
             buildspec = buildspecfile.read()
         codebuild.create_project(
@@ -74,6 +131,51 @@ def create_pipeline(pr_number):
                 'computeType': 'BUILD_GENERAL1_SMALL',
                 'environmentVariables': [
                     {
+                        'name': 'GITHUB_API_URL',
+                        'value': github_api_url,
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'GITHUB_PAC',
+                        'value': pac,
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'MODIFIED_DIRS',
+                        'value': ' '.join(dirs),
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'MODIFIED_TEST_DIRS',
+                        'value': ' '.join(test_dirs),
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'PR_NUMBER',
+                        'value': pr_number,
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'REPO',
+                        'value': repo.split('/')[1],
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'REPO_NAME',
+                        'value': repo.replace('/', '-'),
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'REPO_OWNER',
+                        'value': repo.split('/')[0],
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'S3_BUCKET',
+                        'value': bucket,
+                        'type': 'PLAINTEXT'
+                    },
+                    {
                         'name': 'TERRAFORM_DOWNLOAD_URL',
                         'value': terraform_download_url,
                         'type': 'PLAINTEXT'
@@ -83,41 +185,6 @@ def create_pipeline(pr_number):
                         'value': 'True',
                         'type': 'PLAINTEXT'
                     },
-                    {
-                        'name': 'REPO_NAME',
-                        'value': repo.replace('/', '-'),
-                        'type': 'PLAINTEXT'
-                    },
-                    {
-                        'name': 'S3_BUCKET',
-                        'value': bucket,
-                        'type': 'PLAINTEXT'
-                    },
-                    {
-                        'name': 'PR_NUMBER',
-                        'value': pr_number,
-                        'type': 'PLAINTEXT'
-                    },
-                    {
-                        'name': 'GITHUB_API_URL',
-                        'value': github_api_url,
-                        'type': 'PLAINTEXT'
-                    },
-                    {
-                        'name': 'REPO_OWNER',
-                        'value': repo.split('/')[0],
-                        'type': 'PLAINTEXT'
-                    },
-                    {
-                        'name': 'REPO',
-                        'value': repo.split('/')[1],
-                        'type': 'PLAINTEXT'
-                    },
-                    {
-                        'name': 'GITHUB_PAC',
-                        'value': pac,
-                        'type': 'PLAINTEXT'
-                    },
                 ]
             },
             serviceRole=codebuild_service_role,
@@ -125,7 +192,7 @@ def create_pipeline(pr_number):
         )
 
     if not codebuild_project_exists(pr_number, 'terrascan'):
-        logger.debug('Creating terrascan codebuild project')
+        logger.info('Creating terrascan codebuild project')
         with open('buildspec-terrascan.yml', 'r') as buildspecfile:
             buildspec = buildspecfile.read()
         codebuild.create_project(
@@ -145,6 +212,51 @@ def create_pipeline(pr_number):
                 'computeType': 'BUILD_GENERAL1_SMALL',
                 'environmentVariables': [
                     {
+                        'name': 'GITHUB_API_URL',
+                        'value': github_api_url,
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'GITHUB_PAC',
+                        'value': pac,
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'MODIFIED_DIRS',
+                        'value': ' '.join(dirs),
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'MODIFIED_TEST_DIRS',
+                        'value': ' '.join(test_dirs),
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'PR_NUMBER',
+                        'value': pr_number,
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'REPO',
+                        'value': repo.split('/')[1],
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'REPO_NAME',
+                        'value': repo.replace('/', '-'),
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'REPO_OWNER',
+                        'value': repo.split('/')[0],
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'S3_BUCKET',
+                        'value': bucket,
+                        'type': 'PLAINTEXT'
+                    },
+                    {
                         'name': 'TERRAFORM_DOWNLOAD_URL',
                         'value': terraform_download_url,
                         'type': 'PLAINTEXT'
@@ -154,41 +266,6 @@ def create_pipeline(pr_number):
                         'value': 'True',
                         'type': 'PLAINTEXT'
                     },
-                    {
-                        'name': 'REPO_NAME',
-                        'value': repo.replace('/', '-'),
-                        'type': 'PLAINTEXT'
-                    },
-                    {
-                        'name': 'S3_BUCKET',
-                        'value': bucket,
-                        'type': 'PLAINTEXT'
-                    },
-                    {
-                        'name': 'PR_NUMBER',
-                        'value': pr_number,
-                        'type': 'PLAINTEXT'
-                    },
-                    {
-                        'name': 'GITHUB_API_URL',
-                        'value': github_api_url,
-                        'type': 'PLAINTEXT'
-                    },
-                    {
-                        'name': 'REPO_OWNER',
-                        'value': repo.split('/')[0],
-                        'type': 'PLAINTEXT'
-                    },
-                    {
-                        'name': 'REPO',
-                        'value': repo.split('/')[1],
-                        'type': 'PLAINTEXT'
-                    },
-                    {
-                        'name': 'GITHUB_PAC',
-                        'value': pac,
-                        'type': 'PLAINTEXT'
-                    },
                 ]
             },
             serviceRole=codebuild_service_role,
@@ -196,7 +273,7 @@ def create_pipeline(pr_number):
         )
 
     if not codebuild_project_exists(pr_number, 'plan'):
-        logger.debug('Creating tfplan codebuild project')
+        logger.info('Creating tfplan codebuild project')
         with open('buildspec-terraform-plan.yml', 'r') as buildspecfile:
             buildspec = buildspecfile.read()
         codebuild.create_project(
@@ -215,6 +292,51 @@ def create_pipeline(pr_number):
                 'computeType': 'BUILD_GENERAL1_SMALL',
                 'environmentVariables': [
                     {
+                        'name': 'GITHUB_API_URL',
+                        'value': github_api_url,
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'GITHUB_PAC',
+                        'value': pac,
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'MODIFIED_DIRS',
+                        'value': ' '.join(dirs),
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'MODIFIED_TEST_DIRS',
+                        'value': ' '.join(test_dirs),
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'PR_NUMBER',
+                        'value': pr_number,
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'REPO',
+                        'value': repo.split('/')[1],
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'REPO_NAME',
+                        'value': repo.replace('/', '-'),
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'REPO_OWNER',
+                        'value': repo.split('/')[0],
+                        'type': 'PLAINTEXT'
+                    },
+                    {
+                        'name': 'S3_BUCKET',
+                        'value': bucket,
+                        'type': 'PLAINTEXT'
+                    },
+                    {
                         'name': 'TERRAFORM_DOWNLOAD_URL',
                         'value': terraform_download_url,
                         'type': 'PLAINTEXT'
@@ -224,48 +346,13 @@ def create_pipeline(pr_number):
                         'value': 'True',
                         'type': 'PLAINTEXT'
                     },
-                    {
-                        'name': 'REPO_NAME',
-                        'value': repo.replace('/', '-'),
-                        'type': 'PLAINTEXT'
-                    },
-                    {
-                        'name': 'S3_BUCKET',
-                        'value': bucket,
-                        'type': 'PLAINTEXT'
-                    },
-                    {
-                        'name': 'PR_NUMBER',
-                        'value': pr_number,
-                        'type': 'PLAINTEXT'
-                    },
-                    {
-                        'name': 'GITHUB_API_URL',
-                        'value': github_api_url,
-                        'type': 'PLAINTEXT'
-                    },
-                    {
-                        'name': 'REPO_OWNER',
-                        'value': repo.split('/')[0],
-                        'type': 'PLAINTEXT'
-                    },
-                    {
-                        'name': 'REPO',
-                        'value': repo.split('/')[1],
-                        'type': 'PLAINTEXT'
-                    },
-                    {
-                        'name': 'GITHUB_PAC',
-                        'value': pac,
-                        'type': 'PLAINTEXT'
-                    },
                 ]
             },
             serviceRole=codebuild_service_role,
             timeoutInMinutes=10,
         )
 
-    logger.debug('Creating pipeline')
+    logger.info('Creating pipeline')
     codepipeline.create_pipeline(
         pipeline={
             'name': '{}-terraform-pr-pipeline-{}'.format(
@@ -373,7 +460,7 @@ def lambda_handler(event, context):
     Creates pipeline when a new repo is uploaded to s3
     """
     pr_number = event['Records'][0]['s3']['object']['key'].split('/')[0]
-    logger.debug('Changes detected on PR #{}'.format(pr_number))
+    logger.info('Changes detected on PR #{}'.format(pr_number))
 
     if not pipeline_exists(pr_number):
         create_pipeline(pr_number)
