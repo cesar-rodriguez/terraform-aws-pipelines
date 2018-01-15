@@ -27,6 +27,7 @@ code_build_image = os.environ['CODE_BUILD_IMAGE']
 terraform_download_url = os.environ['TERRAFORM_DOWNLOAD_URL']
 codebuild_service_role = os.environ['CODEBUILD_SERVICE_ROLE']
 codepipeline_service_role = os.environ['CODEPIPELINE_SERVICE_ROLE']
+kms_key = os.environ['KMS_KEY']
 
 
 def pipeline_exists(pr_number):
@@ -189,6 +190,7 @@ def create_pipeline(pr_number):
             },
             serviceRole=codebuild_service_role,
             timeoutInMinutes=5,
+            encryptionKey=kms_key,
         )
 
     if not codebuild_project_exists(pr_number, 'terrascan'):
@@ -270,6 +272,7 @@ def create_pipeline(pr_number):
             },
             serviceRole=codebuild_service_role,
             timeoutInMinutes=5,
+            encryptionKey=kms_key,
         )
 
     if not codebuild_project_exists(pr_number, 'plan'):
@@ -350,6 +353,7 @@ def create_pipeline(pr_number):
             },
             serviceRole=codebuild_service_role,
             timeoutInMinutes=10,
+            encryptionKey=kms_key,
         )
 
     logger.info('Creating pipeline')
@@ -361,7 +365,11 @@ def create_pipeline(pr_number):
             'roleArn': codepipeline_service_role,
             'artifactStore': {
                 'type': 'S3',
-                'location': bucket
+                'location': bucket,
+                'encryptionKey': {
+                    'id': kms_key,
+                    'type': 'KMS'
+                }
             },
             'stages': [
                 {

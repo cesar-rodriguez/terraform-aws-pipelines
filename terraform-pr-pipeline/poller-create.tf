@@ -10,6 +10,7 @@ resource "aws_lambda_function" "poller_create" {
   handler          = "poller-create.lambda_handler"
   source_code_hash = "${base64sha256(file("${path.module}/.lambda-zip/poller-create.zip"))}"
   runtime          = "python3.6"
+  kms_key_arn      = "${aws_kms_key.pipeline_key.arn}"
 
   tags {
     Name = "${var.project_name}-poller-create"
@@ -17,11 +18,12 @@ resource "aws_lambda_function" "poller_create" {
 
   environment {
     variables = {
-      GITHUB_API_URL = "${var.github_api_url}"
+      BUCKET_NAME      = "${aws_s3_bucket.bucket.id}"
+      GITHUB_API_URL   = "${var.github_api_url}"
+      GITHUB_REPO_NAME = "${var.github_repo_name}"
+      KMS_KEY_ID       = "${aws_kms_key.pipeline_key.key_id}"
 
       # GITHUB_PAC       = "${var.github_pac}"
-      GITHUB_REPO_NAME = "${var.github_repo_name}"
-      BUCKET_NAME      = "${aws_s3_bucket.bucket.id}"
     }
   }
 }

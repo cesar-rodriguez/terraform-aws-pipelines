@@ -20,6 +20,7 @@ s3 = boto3.client('s3')
 github_api_url = os.environ['GITHUB_API_URL']
 repo = os.environ['GITHUB_REPO_NAME']
 bucket = os.environ['BUCKET_NAME']
+kms_key_id = os.environ['KMS_KEY_ID']
 
 
 def get_open_pull_requests():
@@ -117,7 +118,11 @@ def lambda_handler(event, context):
             s3.upload_file(
                 archive_name,
                 bucket,
-                s3_object_key
+                s3_object_key,
+                ExtraArgs={
+                    "ServerSideEncryption": "aws:kms",
+                    "SSEKMSKeyId": kms_key_id
+                }
             )
             logger.debug('Copied zip file to s3')
             s3.put_object_tagging(

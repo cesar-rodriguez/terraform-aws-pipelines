@@ -10,6 +10,7 @@ resource "aws_lambda_function" "poller_delete" {
   handler          = "poller-delete.lambda_handler"
   source_code_hash = "${base64sha256(file("${path.module}/.lambda-zip/poller-delete.zip"))}"
   runtime          = "python3.6"
+  kms_key_arn      = "${aws_kms_key.pipeline_key.arn}"
 
   tags {
     Name = "${var.project_name}-poller-delete"
@@ -17,11 +18,11 @@ resource "aws_lambda_function" "poller_delete" {
 
   environment {
     variables = {
-      GITHUB_API_URL = "${var.github_api_url}"
+      BUCKET_NAME      = "${aws_s3_bucket.bucket.id}"
+      GITHUB_API_URL   = "${var.github_api_url}"
+      GITHUB_REPO_NAME = "${var.github_repo_name}"
 
       # GITHUB_PAC       = "${var.github_pac}"
-      GITHUB_REPO_NAME = "${var.github_repo_name}"
-      BUCKET_NAME      = "${aws_s3_bucket.bucket.id}"
     }
   }
 }

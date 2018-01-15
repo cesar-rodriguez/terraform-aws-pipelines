@@ -10,6 +10,7 @@ resource "aws_lambda_function" "pipeline_delete" {
   handler          = "pipeline-delete.lambda_handler"
   source_code_hash = "${base64sha256(file("${path.module}/.lambda-zip/pipeline-delete.zip"))}"
   runtime          = "python3.6"
+  kms_key_arn      = "${aws_kms_key.pipeline_key.arn}"
 
   tags {
     Name = "${var.project_name}-pipeline-delete"
