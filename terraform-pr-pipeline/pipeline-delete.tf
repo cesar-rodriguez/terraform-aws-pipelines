@@ -62,7 +62,7 @@ resource "null_resource" "pipeline_delete_dependencies" {
 // AWS IAM role for pipeline-delete function
 resource "aws_iam_role" "pipeline_delete" {
   name               = "${var.project_name}-pipeline-delete-lambda"
-  assume_role_policy = "${data.aws_iam_policy_document.assume_role.json}"
+  assume_role_policy = "${data.aws_iam_policy_document.lambda_assume_role.json}"
 }
 
 data "aws_iam_policy_document" "pipeline_delete" {

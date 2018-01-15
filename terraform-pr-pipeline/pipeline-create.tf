@@ -74,7 +74,7 @@ resource "null_resource" "pipeline_create_dependencies" {
 // AWS IAM role for pipeline-create function
 resource "aws_iam_role" "pipeline_create" {
   name               = "${var.project_name}-pipeline-create-lambda"
-  assume_role_policy = "${data.aws_iam_policy_document.assume_role.json}"
+  assume_role_policy = "${data.aws_iam_policy_document.lambda_assume_role.json}"
 }
 
 data "aws_iam_policy_document" "pipeline_create" {

@@ -77,7 +77,7 @@ resource "aws_cloudwatch_event_target" "poller_create_target" {
 // AWS IAM role for poller-create function
 resource "aws_iam_role" "poller_create" {
   name               = "${var.project_name}-poller-create-lambda"
-  assume_role_policy = "${data.aws_iam_policy_document.assume_role.json}"
+  assume_role_policy = "${data.aws_iam_policy_document.lambda_assume_role.json}"
 }
 
 data "aws_iam_policy_document" "poller_create" {
