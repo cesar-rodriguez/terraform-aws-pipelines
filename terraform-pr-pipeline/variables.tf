@@ -33,10 +33,12 @@ variable "poller_delete_rate" {
   default     = 60
 }
 
+/*
 variable "codebuild_iam_service_role_arn" {
   description = "IAM role to used by AWS CodeBuild projects"
+  default     = ""
 }
-
+*/
 variable "codepipeline_iam_service_role_arn" {
   description = "IAM role to be used by AWS CodePipeline pipeline"
 }

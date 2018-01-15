@@ -25,7 +25,8 @@ resource "aws_lambda_function" "pipeline_create" {
       CODE_BUILD_IMAGE       = "${var.code_build_image}"
       TERRAFORM_DOWNLOAD_URL = "${var.terraform_download_url}"
 
-      CODEBUILD_SERVICE_ROLE    = "${var.codebuild_iam_service_role_arn}"
+      #CODEBUILD_SERVICE_ROLE    = "${var.codebuild_iam_service_role_arn}"
+      CODEBUILD_SERVICE_ROLE    = "${aws_iam_role.codebuild.arn}"
       CODEPIPELINE_SERVICE_ROLE = "${var.codepipeline_iam_service_role_arn}"
     }
   }
@@ -126,8 +127,10 @@ data "aws_iam_policy_document" "pipeline_create" {
     ]
 
     resources = [
+      #"${var.codebuild_iam_service_role_arn",
+      "${aws_iam_role.codebuild.arn}",
+
       "${var.codepipeline_iam_service_role_arn}",
-      "${var.codebuild_iam_service_role_arn}",
     ]
   }
 }
