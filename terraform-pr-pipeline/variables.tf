@@ -15,10 +15,6 @@ variable "github_api_url" {
   default     = "https://api.github.com"
 }
 
-variable "github_pac" {
-  description = "GitHub Personal Access Token"
-}
-
 variable "github_repo_name" {
   description = "Name of the repository to track pull requests in org/repo format (e.g. cesar-rodriguez/test-repo)"
 }
@@ -42,18 +38,3 @@ variable "terraform_download_url" {
   description = "URL for terraform version to be used for builds"
   default     = "https://releases.hashicorp.com/terraform/0.11.1/terraform_0.11.1_linux_amd64.zip"
 }
-
-/*
-variable "codebuild_iam_service_role_arn" {
-  description = "IAM role to used by AWS CodeBuild projects"
-  default     = ""
-}
-*/
-
-
-/*
-variable "codepipeline_iam_service_role_arn" {
-  description = "IAM role to be used by AWS CodePipeline pipeline"
-}
-*/
-
