@@ -47,6 +47,18 @@ data "aws_iam_policy_document" "codebuild_service" {
       "${aws_s3_bucket.bucket.arn}*",
     ]
   }
+
+  statement {
+    sid = "SSMAccess"
+
+    actions = [
+      "ssm:GetParameters",
+    ]
+
+    resources = [
+      "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/${var.project_name}-terraform-pr*",
+    ]
+  }
 }
 
 resource "aws_iam_policy" "codebuild_service" {
