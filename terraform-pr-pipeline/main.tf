@@ -22,7 +22,7 @@
         `-- main.tf
 ```
 
-  Prior to running the terraform templates for the first time. Execute setup.sh to prepopulate required zip files.
+  Prior to running the terraform templates for the first time. Execute setup.sh to prepopulate required zip files. Before the pipeline gets executed place your GitHub Personal Access Token (PAT) in the SSM parameter store (using a KMS key to encrypt it) at ${PROJECT_NAME}-terraform-pr-pat. Here's an AWS CLI example for PROJECT_NAME=therasec: `aws ssm put-parameter --name therasec-terraform-pr-pat --value THE_TOKEN --type SecureString --key-id THE_KMS_KEY_ID`.
 
   ## poller-create lambda
   Funtion that is triggered by default every 5 minutes to poll the repository for open pull requets. A zip file of latest commit for each pull request is saved into an S3 bucket.

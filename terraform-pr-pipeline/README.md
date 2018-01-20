@@ -1,7 +1,3 @@
-# To Do
-- terraform apply test
-- Outputs for all resources
-
 # AWS terraform pull request pipeline
 Provisions CI/CD pipeline for terraform pull request reviews. A new pipeline (AWS CodePipeline) is created for each new pull request in the given GitHub repository. The solution uses AWS lambda to sync contents of PRs with S3 and to create the pipeline. CodeBuild is used to check for terraform fmt, runs terrascan for static code analysis, and comments results into the PR.
 
@@ -25,7 +21,7 @@ The pipeline will only perform tests on directories that contain modified files 
 `-- main.tf
 ```
 
-Prior to running the terraform templates for the first time. Execute setup.sh to prepopulate required zip files.
+Prior to running the terraform templates for the first time. Execute setup.sh to prepopulate required zip files. Before the pipeline gets executed place your GitHub Personal Access Token (PAT) in the SSM parameter store (using a KMS key to encrypt it) at ${PROJECT_NAME}-terraform-pr-pat. Here's an AWS CLI example for PROJECT_NAME=therasec: `aws ssm put-parameter --name therasec-terraform-pr-pat --value THE_TOKEN --type SecureString --key-id THE_KMS_KEY_ID`.
 
 ## poller-create lambda
 Funtion that is triggered by default every 5 minutes to poll the repository for open pull requets. A zip file of latest commit for each pull request is saved into an S3 bucket.
@@ -47,8 +43,6 @@ Triggered each time there's a zip file deleted from S3. This function deletes th
 | aws_profile | AWS credentials profile to use | string | - | yes |
 | aws_region | AWS region where resources are provisioned | string | - | yes |
 | code_build_image | Docker image to use for CodeBuild container - Use http://amzn.to/2mjCI91 for reference | string | `aws/codebuild/ubuntu-base:14.04` | no |
-| codebuild_iam_service_role_arn | IAM role to used by AWS CodeBuild projects | string | - | yes |
-| codepipeline_iam_service_role_arn | IAM role to be used by AWS CodePipeline pipeline | string | - | yes |
 | github_api_url | API URL for GitHub | string | `https://api.github.com` | no |
 | github_pac | GitHub Personal Access Token | string | - | yes |
 | github_repo_name | Name of the repository to track pull requests in org/repo format (e.g. cesar-rodriguez/test-repo) | string | - | yes |
