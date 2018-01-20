@@ -44,7 +44,6 @@ Triggered each time there's a zip file deleted from S3. This function deletes th
 | aws_region | AWS region where resources are provisioned | string | - | yes |
 | code_build_image | Docker image to use for CodeBuild container - Use http://amzn.to/2mjCI91 for reference | string | `aws/codebuild/ubuntu-base:14.04` | no |
 | github_api_url | API URL for GitHub | string | `https://api.github.com` | no |
-| github_pac | GitHub Personal Access Token | string | - | yes |
 | github_repo_name | Name of the repository to track pull requests in org/repo format (e.g. cesar-rodriguez/test-repo) | string | - | yes |
 | poller_create_rate | Rate in minutes for polling the GitHub repository for open pull requests | string | `5` | no |
 | poller_delete_rate | Rate in minutes for polling the GitHub repository to check if PRs are still open | string | `60` | no |

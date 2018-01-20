@@ -136,8 +136,8 @@ def create_pipeline(pr_number):
                         'type': 'PLAINTEXT'
                     },
                     {
-                        'name': 'GITHUB_PAC',
-                        'value': '{}-terraform-pr-pac'.format(project_name),
+                        'name': 'GITHUB_PAT',
+                        'value': '{}-terraform-pr-pat'.format(project_name),
                         'type': 'PARAMETER_STORE'
                     },
                     {
@@ -218,8 +218,8 @@ def create_pipeline(pr_number):
                         'type': 'PLAINTEXT'
                     },
                     {
-                        'name': 'GITHUB_PAC',
-                        'value': '{}-terraform-pr-pac'.format(project_name),
+                        'name': 'GITHUB_PAT',
+                        'value': '{}-terraform-pr-pat'.format(project_name),
                         'type': 'PARAMETER_STORE'
                     },
                     {
@@ -299,8 +299,8 @@ def create_pipeline(pr_number):
                         'type': 'PLAINTEXT'
                     },
                     {
-                        'name': 'GITHUB_PAC',
-                        'value': '{}-terraform-pr-pac'.format(project_name),
+                        'name': 'GITHUB_PAT',
+                        'value': '{}-terraform-pr-pat'.format(project_name),
                         'type': 'PARAMETER_STORE'
                     },
                     {
