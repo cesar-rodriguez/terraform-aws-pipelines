@@ -21,8 +21,6 @@ resource "aws_lambda_function" "poller_delete" {
       BUCKET_NAME      = "${aws_s3_bucket.bucket.id}"
       GITHUB_API_URL   = "${var.github_api_url}"
       GITHUB_REPO_NAME = "${var.github_repo_name}"
-
-      # GITHUB_PAC       = "${var.github_pac}"
     }
   }
 }

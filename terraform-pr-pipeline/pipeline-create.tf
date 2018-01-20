@@ -18,7 +18,6 @@ resource "aws_lambda_function" "pipeline_create" {
 
   environment {
     variables = {
-      GITHUB_PAC                = "${var.github_pac}"
       GITHUB_API_URL            = "${var.github_api_url}"
       GITHUB_REPO_NAME          = "${var.github_repo_name}"
       BUCKET_NAME               = "${aws_s3_bucket.bucket.id}"
@@ -28,9 +27,6 @@ resource "aws_lambda_function" "pipeline_create" {
       CODEBUILD_SERVICE_ROLE    = "${aws_iam_role.codebuild.arn}"
       CODEPIPELINE_SERVICE_ROLE = "${aws_iam_role.codepipeline.arn}"
       KMS_KEY                   = "${aws_kms_key.pipeline_key.arn}"
-
-      #CODEBUILD_SERVICE_ROLE    = "${var.codebuild_iam_service_role_arn}"
-      #CODEPIPELINE_SERVICE_ROLE = "${var.codepipeline_iam_service_role_arn}"
     }
   }
 }
@@ -133,9 +129,6 @@ data "aws_iam_policy_document" "pipeline_create" {
       "${aws_iam_role.codebuild.arn}",
       "${aws_iam_role.codepipeline.arn}",
     ]
-
-    #"${var.codebuild_iam_service_role_arn",
-    #"${var.codepipeline_iam_service_role_arn}",
   }
 }
 

@@ -16,7 +16,6 @@ logging.getLogger('botocore').setLevel(logging.ERROR)
 s3 = boto3.client('s3')
 
 # Global vars
-# pac = os.environ['GITHUB_PAC']
 github_api_url = os.environ['GITHUB_API_URL']
 repo = os.environ['GITHUB_REPO_NAME']
 bucket = os.environ['BUCKET_NAME']

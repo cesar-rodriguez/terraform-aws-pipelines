@@ -18,7 +18,6 @@ codepipeline = boto3.client('codepipeline')
 codebuild = boto3.client('codebuild')
 
 # Global vars
-pac = os.environ['GITHUB_PAC']
 github_api_url = os.environ['GITHUB_API_URL']
 repo = os.environ['GITHUB_REPO_NAME']
 bucket = os.environ['BUCKET_NAME']
@@ -138,8 +137,8 @@ def create_pipeline(pr_number):
                     },
                     {
                         'name': 'GITHUB_PAC',
-                        'value': pac,
-                        'type': 'PLAINTEXT'
+                        'value': '{}-terraform-pr-pac'.format(project_name),
+                        'type': 'PARAMETER_STORE'
                     },
                     {
                         'name': 'MODIFIED_DIRS',
@@ -220,8 +219,8 @@ def create_pipeline(pr_number):
                     },
                     {
                         'name': 'GITHUB_PAC',
-                        'value': pac,
-                        'type': 'PLAINTEXT'
+                        'value': '{}-terraform-pr-pac'.format(project_name),
+                        'type': 'PARAMETER_STORE'
                     },
                     {
                         'name': 'MODIFIED_DIRS',
@@ -301,8 +300,8 @@ def create_pipeline(pr_number):
                     },
                     {
                         'name': 'GITHUB_PAC',
-                        'value': pac,
-                        'type': 'PLAINTEXT'
+                        'value': '{}-terraform-pr-pac'.format(project_name),
+                        'type': 'PARAMETER_STORE'
                     },
                     {
                         'name': 'MODIFIED_DIRS',

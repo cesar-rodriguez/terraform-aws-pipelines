@@ -1,3 +1,7 @@
+# To Do
+- terraform apply test
+- Outputs for all resources
+
 # AWS terraform pull request pipeline
 Provisions CI/CD pipeline for terraform pull request reviews. A new pipeline (AWS CodePipeline) is created for each new pull request in the given GitHub repository. The solution uses AWS lambda to sync contents of PRs with S3 and to create the pipeline. CodeBuild is used to check for terraform fmt, runs terrascan for static code analysis, and comments results into the PR.
 

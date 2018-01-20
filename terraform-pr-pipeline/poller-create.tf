@@ -22,8 +22,6 @@ resource "aws_lambda_function" "poller_create" {
       GITHUB_API_URL   = "${var.github_api_url}"
       GITHUB_REPO_NAME = "${var.github_repo_name}"
       KMS_KEY_ID       = "${aws_kms_key.pipeline_key.key_id}"
-
-      # GITHUB_PAC       = "${var.github_pac}"
     }
   }
 }
