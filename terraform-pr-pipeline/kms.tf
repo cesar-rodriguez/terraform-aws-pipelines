@@ -37,7 +37,7 @@ data "aws_iam_policy_document" "pipeline_key" {
       type = "AWS"
 
       identifiers = [
-        "${data.aws_caller_identity.current.user_id}",
+        "${data.aws_caller_identity.current.arn}",
       ]
     }
   }
@@ -61,7 +61,7 @@ data "aws_iam_policy_document" "pipeline_key" {
       type = "AWS"
 
       identifiers = [
-        "${data.aws_caller_identity.current.user_id}",
+        "${data.aws_caller_identity.current.arn}",
         "${aws_iam_role.codebuild.arn}",
         "${aws_iam_role.codepipeline.arn}",
         "${aws_iam_role.poller_create.arn}",
@@ -86,7 +86,7 @@ data "aws_iam_policy_document" "pipeline_key" {
       type = "AWS"
 
       identifiers = [
-        "${data.aws_caller_identity.current.user_id}",
+        "${data.aws_caller_identity.current.arn}",
       ]
     }
   }
