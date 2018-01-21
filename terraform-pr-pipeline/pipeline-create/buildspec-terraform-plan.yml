@@ -17,14 +17,15 @@ phases:
     commands:
       - repo=$( ls | grep ${REPO_NAME})
       - cd $repo
+      - export REPO_DIR=$(pwd)
       - echo $MODIFIED_TEST_DIRS
-      - for dir in $MODIFIED_TEST_DIRS; do echo "\n## Running in $dir\n" >> results.log && terraform init -input=false -no-color $dir | tee -a results.log && terraform plan -input=false -no-color $dir 2>&1 | tee -a results.log; done
-      - if [ $(cat results.log | grep "Error" | wc -l) -gt 0 ]; then echo "Error in terraform plan" && exit 1; fi
+      - for dir in $MODIFIED_TEST_DIRS; do echo "\n## Running in - $dir\n### Terraform init\n" | tee -a results-plan.log && cd $dir && terraform init -input=false -no-color | tee -a $REPO_DIR/results-plan.log && echo "\n### Terraform plan\n" | tee -a $REPO_DIR/results-plan.log && terraform plan -input=false -no-color -out=tfplan 2>&1 | tee -a $REPO_DIR/results-plan.log && echo "\n### Terraform apply\n" | tee -a $REPO_DIR/results-plan.log && terraform apply -input=false -no-color tfplan 2>&1 | tee -a $REPO_DIR/results-plan.log && echo "\n### Terraform destroy\n" | tee -a $REPO_DIR/results-plan.log && terraform destroy -input=false -no-color -force 2>&1 | tee -a $REPO_DIR/results-plan.log && cd $REPO_DIR; done
+      - if [ $(cat results-plan.log | grep "Error" | wc -l) -gt 0 ]; then echo "Error in terraform plan" && exit 1; fi
   post_build:
     commands:
       - if [ $CODEBUILD_BUILD_SUCCEEDING -eq 1 ]; then export STATE="success"; else export STATE="failure"; fi
       - "jq -n -r --arg state \"${STATE}\" --arg url \"$BUILD_URL\" '{ state: $state, target_url: $url, description: \"Checks that terraform plan executes without errors\", context: \"terraform-plan\"}' > data.json"
       - "curl -d \"@data.json\" -H \"Content-Type: application/json\" -H \"Authorization: token ${GITHUB_PAT}\" -X POST $GITHUB_API_URL/repos/$REPO_OWNER/$REPO/statuses/$SHA"
-      - echo "# terraform-plan results results for $SHA\n" > results.txt && cat results.log >> results.txt
+      - echo "# terraform-plan results results for ${SHA}\n" > results.txt && cat results-plan.log >> results.txt
       - "jq -n -r --arg body \"$(cat results.txt)\" '{ body: $body }' > data.json"
       - "curl -d \"@data.json\" -H \"Content-Type: application/json\" -H \"Authorization: token ${GITHUB_PAT}\" -X POST $GITHUB_API_URL/repos/$REPO_OWNER/$REPO/issues/$PR_NUMBER/comments"
